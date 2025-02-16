@@ -1,13 +1,13 @@
 {
-  "name": "knowledge-graph",
+  "name": "gnosis-graph",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start"
     "lint": "next lint"
-  },
+  }
   "dependencies": {
     "d3-force": "^3.0.0",
     "lodash": "^4.17.21",
