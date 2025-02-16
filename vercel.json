@@ -1,6 +1,5 @@
 {
-  "buildCommand": "cd gnosis-graph && npm install && npm run build",
+  "buildCommand": "cd gnosis-graph && next build",
   "outputDirectory": "gnosis-graph/.next",
-  "framework": "nextjs",
   "installCommand": "cd gnosis-graph && npm install"
 }
