@@ -16,7 +16,7 @@ const ANNEAL_DURATION = 10; // seconds
 interface Node {
   id: string;
   label: string;
-  color: string; // initial color (not used for text drawing now)
+  color: string; // not used for text drawing now
   position: THREE.Vector3;
   velocity: THREE.Vector3;
 }
@@ -27,24 +27,23 @@ interface Edge {
 }
 
 // --- Initial Data ---
-// All nodes start at (0,0,0).
 const initialNodes: Node[] = [
   { id: 'safe',    label: 'SAFe',    color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
   { id: 'less',    label: 'LeSS',    color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
-  { id: 'cynefin', label: 'Cynefin',  color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
+  { id: 'cynefin',  label: 'Cynefin',  color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
   { id: 'agile',   label: 'Agile',   color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
   { id: 'devops',  label: 'DevOps',  color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }
 ];
 
-// Edges – including an extra { from: 'devops', to: 'cynefin' } edge for a 3D layout.
+// Edges – including extra { from: 'devops', to: 'cynefin' } for a 3D layout.
 const edges: Edge[] = [
   { from: 'safe',    to: 'agile' },
   { from: 'less',    to: 'agile' },
   { from: 'cynefin',  to: 'agile' },
-  { from: 'devops',   to: 'agile' },
+  { from: 'devops',  to: 'agile' },
   { from: 'safe',    to: 'devops' },
   { from: 'less',    to: 'devops' },
-  { from: 'devops',   to: 'cynefin' }
+  { from: 'devops',  to: 'cynefin' }
 ];
 
 /* --- Edge Component --- */
@@ -67,11 +66,31 @@ function EdgeComponent({ startNode, endNode }: { startNode: Node; endNode: Node 
         color="#e7e7e7"
         transparent
         opacity={0.4}
-        depthTest={false} // prevents occlusion issues with pointer events
+        depthTest={false} // so lines do not block pointer events
       />
     </line>
   );
 }
+
+/* --- Helper: Create a CanvasTexture from label text --- */
+const createLabelTexture = (label: string, textColor: string): THREE.CanvasTexture => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // No background fill: leave transparent.
+    ctx.fillStyle = textColor;
+    ctx.font = '60px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+};
 
 /* --- NodeMesh Component (Label Sprite) --- */
 interface NodeMeshProps {
@@ -90,32 +109,18 @@ function NodeMesh({ node, status, onSelect }: NodeMeshProps) {
 
   const handlePointerDown = (e: THREE.Event) => {
     e.stopPropagation();
-    console.log('Pointer down on node:', node.label, 'current status:', status);
+    console.log('Pointer down on node:', node.label, 'status:', status);
     onSelect(node);
   };
 
-  // Determine text color based on status:
-  // "initial" => black, "selected" => blue, "unselected" => green.
+  // Determine text color based on status.
   const textColor =
     status === 'initial' ? 'black' : status === 'selected' ? '#2f6eba' : '#548235';
 
-  // Create a memoized canvas texture. We do NOT fill a background, so it remains transparent.
-  const labelCanvas = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Draw the label text in the appropriate color.
-      ctx.fillStyle = textColor;
-      ctx.font = '60px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(node.label, canvas.width / 2, canvas.height / 2);
-    }
-    return canvas;
-  }, [status, node.label, textColor]);
+  // Recreate the texture whenever status or label changes.
+  const labelTexture = useMemo(() => {
+    return createLabelTexture(node.label, textColor);
+  }, [node.label, textColor]);
 
   const spriteScale = status === 'selected' ? [6, 3, 3] : [4, 2, 2];
 
@@ -127,9 +132,7 @@ function NodeMesh({ node, status, onSelect }: NodeMeshProps) {
         renderOrder={999}
         frustumCulled={false}
       >
-        <spriteMaterial depthTest={false} transparent>
-          <canvasTexture attach="map" image={labelCanvas} />
-        </spriteMaterial>
+        <spriteMaterial depthTest={false} transparent map={labelTexture} />
       </sprite>
     </group>
   );
