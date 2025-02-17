@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Physics constants - adjusted for gentler movement
-const REPULSION = 10;         // Reduced from 15
-const ATTRACTION = 0.03;      // Reduced from 0.05
-const DAMPING = 0.85;         // Increased from 0.7 for more stability
-const CENTER_GRAVITY = 0.008;   // Reduced from 0.01
+const REPULSION = 10;        // Reduced from 15
+const ATTRACTION = 0.03;     // Reduced from 0.05
+const DAMPING = 0.85;        // Increased from 0.7 for more stability
+const CENTER_GRAVITY = 0.008;  // Reduced from 0.01
 const INITIAL_SPREAD = 8;
 
 interface Node {
@@ -51,6 +51,7 @@ const edges: Edge[] = [
   { from: 'less', to: 'devops' }
 ];
 
+/* --- Edge Component --- */
 function EdgeComponent({ startNode, endNode }: { startNode: Node; endNode: Node }) {
   const ref = useRef<THREE.Line>(null);
 
@@ -73,10 +74,17 @@ function EdgeComponent({ startNode, endNode }: { startNode: Node; endNode: Node 
   );
 }
 
-function NodeMesh({ node, onSelect }: { node: Node; onSelect: (node: Node) => void }) {
+/* --- Node Mesh Component --- */
+interface NodeMeshProps {
+  node: Node;
+  selected: boolean;
+  onSelect: (node: Node) => void;
+}
+
+function NodeMesh({ node, selected, onSelect }: NodeMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
 
-  // Update the mesh's position directly each frame
+  // Update the node's position each frame
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.position.copy(node.position);
@@ -84,20 +92,16 @@ function NodeMesh({ node, onSelect }: { node: Node; onSelect: (node: Node) => vo
   });
 
   const handleClick = (e: any) => {
-    // Stop propagation so OrbitControls doesn't intercept this event
-    e.stopPropagation();
-    console.log('Selected node:', node.label);
+    e.stopPropagation(); // Prevent OrbitControls (if active) from intercepting
+    console.log('Clicked node:', node.label);
     onSelect(node);
   };
 
   return (
     <group ref={groupRef}>
-      <mesh
-        onClick={handleClick}
-        onPointerDown={handleClick}
-      >
+      <mesh onClick={handleClick} scale={selected ? [1.5, 1.5, 1.5] : [1, 1, 1]}>
         <sphereGeometry args={[0.5, 32, 32]} />
-        <meshPhongMaterial color={node.color} shininess={60} />
+        <meshPhongMaterial color={selected ? 'blue' : node.color} shininess={60} />
       </mesh>
       <sprite scale={[3, 1, 1]}>
         <spriteMaterial>
@@ -123,11 +127,21 @@ function NodeMesh({ node, onSelect }: { node: Node; onSelect: (node: Node) => vo
   );
 }
 
-function Graph() {
-  // Use a ref for nodes to avoid constant React re-renders.
+/* --- Graph Component --- */
+interface GraphProps {
+  frozen: boolean;
+  selectedNodeId: string | null;
+  onSelect: (node: Node) => void;
+}
+
+function Graph({ frozen, selectedNodeId, onSelect }: GraphProps) {
+  // Use a ref to store nodes to avoid re-renders every frame.
   const nodesRef = useRef<Node[]>(initialNodes);
 
   useFrame(() => {
+    // If frozen (Explore mode), skip simulation updates.
+    if (frozen) return;
+
     const nodes = nodesRef.current;
     nodes.forEach((node) => {
       const newPosition = node.position.clone();
@@ -157,7 +171,7 @@ function Graph() {
         }
       });
 
-      // Gentle center gravity and damping
+      // Apply gentle center gravity and damping
       newVelocity.sub(newPosition.clone().multiplyScalar(CENTER_GRAVITY));
       newVelocity.multiplyScalar(DAMPING);
 
@@ -181,19 +195,44 @@ function Graph() {
         <NodeMesh
           key={node.id}
           node={node}
-          onSelect={(selectedNode) => {
-            // This should log when you click a sphere
-            console.log('Selected node:', selectedNode.label);
-          }}
+          selected={node.id === selectedNodeId}
+          onSelect={onSelect}
         />
       ))}
     </group>
   );
 }
 
+/* --- Graph3D Component --- */
 export default function Graph3D() {
+  const [exploreMode, setExploreMode] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const handleSelect = (node: Node) => {
+    // Only allow selection if in Explore mode.
+    if (exploreMode) {
+      setSelectedNodeId(node.id);
+    }
+  };
+
   return (
-    <div style={{ width: '100%', height: '500px', background: '#ffffff' }}>
+    <div style={{ position: 'relative', width: '100%', height: '500px', background: '#ffffff' }}>
+      <button
+        onClick={() => setExploreMode(!exploreMode)}
+        style={{
+          position: 'absolute',
+          zIndex: 1,
+          top: '10px',
+          left: '10px',
+          padding: '8px 12px',
+          background: exploreMode ? '#4aff4a' : '#ccc',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        {exploreMode ? 'Exit Explore Mode' : 'Enter Explore Mode'}
+      </button>
       <Canvas
         camera={{ position: [10, 10, 10], fov: 45 }}
         style={{ touchAction: 'none' }}
@@ -203,12 +242,13 @@ export default function Graph3D() {
       >
         <ambientLight intensity={0.4} />
         <directionalLight position={[5, 5, 5]} intensity={0.6} />
-        <Graph />
+        <Graph frozen={exploreMode} selectedNodeId={selectedNodeId} onSelect={handleSelect} />
         <OrbitControls
           makeDefault
-          enableRotate={true}
-          enableZoom={true}
-          enablePan={true}
+          enabled={!exploreMode} // Disable controls in Explore mode
+          enableRotate={!exploreMode}
+          enableZoom={!exploreMode}
+          enablePan={!exploreMode}
           rotateSpeed={1}
           zoomSpeed={1.2}
           panSpeed={0.8}
