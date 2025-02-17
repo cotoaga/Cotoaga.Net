@@ -60,7 +60,7 @@ function EdgeComponent({ startNode, endNode }: { startNode: Node; endNode: Node 
     }
   });
   return (
-    <line ref={ref}>
+    <line ref={ref as any}>
       <bufferGeometry />
       <lineBasicMaterial
         color="#e7e7e7"
