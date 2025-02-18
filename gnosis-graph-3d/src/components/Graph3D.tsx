@@ -247,8 +247,22 @@ export default function Graph3D() {
     });
   };
 
+  // Create a ref for OrbitControls so we can reset the camera.
+  const controlsRef = useRef<any>(null);
+  const handleCenter = () => {
+    if (controlsRef.current) {
+      controlsRef.current.reset();
+    }
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '500px', background: '#ffffff' }}>
+      {/* Center Button */}
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}>
+        <button onClick={handleCenter} style={{ padding: '8px 12px', fontSize: '16px' }}>
+          Center
+        </button>
+      </div>
       <Canvas
         camera={{ position: [10, 10, 10], fov: 45 }}
         style={{ touchAction: 'none' }}
@@ -259,7 +273,7 @@ export default function Graph3D() {
         <ambientLight intensity={0.4} />
         <directionalLight position={[5, 5, 5]} intensity={0.6} />
         <Graph nodeStatus={nodeStatus} onSelect={handleSelect} />
-        <OrbitControls makeDefault />
+        <OrbitControls makeDefault ref={controlsRef} />
       </Canvas>
     </div>
   );
