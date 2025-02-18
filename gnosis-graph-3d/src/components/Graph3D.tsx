@@ -122,7 +122,7 @@ function NodeMesh({ node, status, onSelect }: NodeMeshProps) {
     return createLabelTexture(node.label, textColor);
   }, [node.label, textColor]);
 
-  const spriteScale = status === 'selected' ? [6, 3, 3] : [4, 2, 2];
+  const spriteScale: [number, number, number] = status === 'selected' ? [6, 3, 3] : [4, 2, 2];
 
   return (
     <group ref={groupRef}>
