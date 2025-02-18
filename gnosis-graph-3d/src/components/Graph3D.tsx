@@ -107,7 +107,7 @@ function NodeMesh({ node, status, onSelect }: NodeMeshProps) {
     }
   });
 
-  const handlePointerDown = (e: THREE.Event) => {
+  const handlePointerDown = (e: any) => {
     e.stopPropagation();
     console.log('Pointer down on node:', node.label, 'status:', status);
     onSelect(node);
