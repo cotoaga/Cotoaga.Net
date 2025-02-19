@@ -15,7 +15,3 @@ export default function Home() {
     </main>
   );
 }
-
-<div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 2 }}>
-  <button onClick={handleCenter}>Center</button>
-</div>
