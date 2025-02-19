@@ -27,23 +27,68 @@ interface Edge {
 }
 
 // --- Initial Data ---
+// Nodes – Expanded to reflect your world, with a nod to your scorpion-Mars-Pluto-Athene branding
 const initialNodes: Node[] = [
-  { id: 'safe',    label: 'SAFe',    color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
-  { id: 'less',    label: 'LeSS',    color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
-  { id: 'cynefin',  label: 'Cynefin',  color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
-  { id: 'agile',   label: 'Agile',   color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() },
-  { id: 'devops',  label: 'DevOps',  color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }
+  // Core Frameworks & Mindsets
+  { id: 'cynefin',    label: 'Cynefin',         color: '#2E2E2E', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Charcoal for complexity
+  { id: 'safe',       label: 'SAFe',            color: '#8B0000', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Dark red for Mars energy
+  { id: 'less',       label: 'LeSS',            color: '#548235', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Green for lean roots
+  { id: 'agile',      label: 'Agile',           color: '#C0C0C0', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Silver for tech sheen
+  { id: 'devops',     label: 'DevOps',          color: '#4682B4', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Steel blue for flow
+
+  // Your Must-Haves: Management & Growth Domains
+  { id: 'product',    label: 'Product Mgmt',    color: '#FFD700', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Gold for value creation
+  { id: 'project',    label: 'Project Mgmt',    color: '#A9A9A9', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Dark silver for structure
+  { id: 'program',    label: 'Program Mgmt',    color: '#A9A9A9', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Dark silver, tied to project
+  { id: 'marketing',  label: 'Marketing',       color: '#FF4500', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Orange-red for visibility
+  { id: 'bizdev',     label: 'Business Dev',    color: '#FF4500', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Orange-red, paired with marketing
+  { id: 'partner',    label: 'Partner Mgmt',    color: '#DAA520', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Goldenrod for collaboration
+  { id: 'interim',    label: 'Interim Mgmt',    color: '#483D8B', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Dark slate for adaptability
+
+  // Your Secret Sauce: Complexity, Optimization, and Vision
+  { id: 'complexity', label: 'Complexity',      color: '#2E2E2E', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Charcoal, tied to Cynefin
+  { id: 'optimize',   label: 'Optimization',    color: '#FFD700', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Gold for your Maximizer soul
+  { id: 'dao',        label: 'DAO',             color: '#800080', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Purple for futuristic edge
+  { id: 'ai',         label: 'AI',              color: '#4682B4', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Steel blue, tied to DevOps
+  { id: 'knowledge',  label: 'Knowledge Mgmt',  color: '#C0C0C0', position: new THREE.Vector3(0, 0, 0), velocity: new THREE.Vector3() }, // Silver for Pallas Athene wisdom
 ];
 
 // Edges – including extra { from: 'devops', to: 'cynefin' } for a 3D layout.
+// Edges – Connecting your universe in a 3D dance of brilliance
 const edges: Edge[] = [
-  { from: 'safe',    to: 'agile' },
-  { from: 'less',    to: 'agile' },
-  { from: 'cynefin',  to: 'agile' },
-  { from: 'devops',  to: 'agile' },
-  { from: 'safe',    to: 'devops' },
-  { from: 'less',    to: 'devops' },
-  { from: 'devops',  to: 'cynefin' }
+  // Frameworks to Agile Core
+  { from: 'safe',      to: 'agile' },
+  { from: 'less',      to: 'agile' },
+  { from: 'cynefin',   to: 'agile' },
+  { from: 'devops',    to: 'agile' },
+
+  // DevOps as a Bridge
+  { from: 'safe',      to: 'devops' },
+  { from: 'less',      to: 'devops' },
+  { from: 'devops',    to: 'cynefin' },  // Flow meets complexity
+  { from: 'devops',    to: 'ai' },       // Tech synergy
+
+  // Management Domains to Core Strengths
+  { from: 'product',   to: 'agile' },
+  { from: 'product',   to: 'optimize' }, // Product is about value
+  { from: 'project',   to: 'agile' },
+  { from: 'program',   to: 'agile' },
+  { from: 'project',   to: 'program' },   // Natural hierarchy
+  { from: 'marketing', to: 'bizdev' },    // Growth twins
+  { from: 'marketing', to: 'product' },   // Market informs product
+  { from: 'bizdev',    to: 'partner' },   // Partnerships fuel growth
+  { from: 'partner',   to: 'dao' },       // DAO as collaboration hub
+  { from: 'interim',   to: 'optimize' },  // Interim fixes inefficiencies
+  { from: 'interim',   to: 'program' },   // Interim often scopes big
+
+  // Your Secret Sauce Connections
+  { from: 'cynefin',   to: 'complexity' }, // Duh
+  { from: 'complexity', to: 'knowledge' }, // Complexity demands wisdom
+  { from: 'optimize',  to: 'agile' },     // Optimization fuels agility
+  { from: 'optimize',  to: 'dao' },       // DAO is optimized org design
+  { from: 'ai',        to: 'dao' },       // AI powers DAO
+  { from: 'ai',        to: 'knowledge' }, // AI amplifies learning
+  { from: 'knowledge', to: 'agile' },     // Knowledge drives adaptability
 ];
 
 /* --- Edge Component --- */
