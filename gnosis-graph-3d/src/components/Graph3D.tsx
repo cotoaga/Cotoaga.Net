@@ -256,7 +256,7 @@ export default function Graph3D() {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '500px', background: '#ffffff' }}>
+    <div style={{ position: 'relative', width: '100%', height: '300px', background: '#ffffff' }}>
       {/* Center Button */}
       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}>
         <button onClick={handleCenter} style={{ padding: '8px 12px', fontSize: '16px' }}>
