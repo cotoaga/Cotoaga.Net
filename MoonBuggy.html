@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Moon Buggy</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div>Score: <span id="score">0</span></div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+
+        // Game objects
+        const buggy = {
+            x: 100,
+            y: 300,
+            width: 40,
+            height: 20,
+            velocity: 0,
+            gravity: 0.5,
+            jumpForce: -10,
+            isJumping: false
+        };
+
+        let craters = [];
+        let score = 0;
+        let gameSpeed = 3;
+        let gameOver = false;
+
+        // Controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !buggy.isJumping) {
+                buggy.velocity = buggy.jumpForce;
+                buggy.isJumping = true;
+            }
+        });
+
+        // Create crater
+        function spawnCrater() {
+            const crater = {
+                x: canvas.width,
+                width: Math.random() * 40 + 20,
+                passed: false
+            };
+            craters.push(crater);
+        }
+
+        // Game loop
+        function update() {
+            if (gameOver) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw ground
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(0, 320, canvas.width, 80);
+
+            // Update and draw buggy
+            buggy.velocity += buggy.gravity;
+            buggy.y += buggy.velocity;
+            
+            if (buggy.y > 300) {
+                buggy.y = 300;
+                buggy.velocity = 0;
+                buggy.isJumping = false;
+            }
+
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(buggy.x, buggy.y, buggy.width, buggy.height);
+
+            // Update and draw craters
+            if (Math.random() < 0.02) spawnCrater();
+
+            ctx.fillStyle = 'darkgray';
+            for (let i = craters.length - 1; i >= 0; i--) {
+                const crater = craters[i];
+                crater.x -= gameSpeed;
+
+                // Draw crater
+                ctx.beginPath();
+                ctx.arc(crater.x + crater.width/2, 340, crater.width/2, 0, Math.PI, true);
+                ctx.fill();
+
+                // Collision detection
+                if (buggy.x + buggy.width > crater.x && 
+                    buggy.x < crater.x + crater.width &&
+                    buggy.y + buggy.height > 320) {
+                    gameOver = true;
+                }
+
+                // Score
+                if (!crater.passed && buggy.x > crater.x + crater.width) {
+                    crater.passed = true;
+                    score++;
+                    scoreDisplay.textContent = score;
+                    gameSpeed += 0.1;
+                }
+
+                // Remove off-screen craters
+                if (crater.x + crater.width < 0) {
+                    craters.splice(i, 1);
+                }
+            }
+
+            // Game over text
+            if (gameOver) {
+                ctx.fillStyle = 'red';
+                ctx.font = '40px Arial';
+                ctx.fillText('Game Over', canvas.width/2 - 100, canvas.height/2);
+                ctx.font = '20px Arial';
+                ctx.fillText('Press F5 to restart', canvas.width/2 - 80, canvas.height/2 + 40);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // Start game
+        update();
+    </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spacewar! Recreation</title>
+    <style>
+        canvas { border: 1px solid black; background: #000; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Constants
+        const G = 0.5; // Gravitational constant
+        const SUN_MASS = 1000;
+        const SHIP_MASS = 1;
+        const THRUST = 0.1;
+        const BULLET_SPEED = 5;
+        const MAX_BULLETS = 5;
+
+        // Game objects
+        const sun = { x: canvas.width / 2, y: canvas.height / 2, mass: SUN_MASS };
+
+        const ship1 = {
+            x: 300, y: 300, vx: 0, vy: 1, angle: 0, thrust: 0,
+            bullets: [], alive: true, color: '#0f0'
+        };
+
+        const ship2 = {
+            x: 500, y: 300, vx: 0, vy: -1, angle: Math.PI, thrust: 0,
+            bullets: [], alive: true, color: '#f00'
+        };
+
+        // Keyboard controls
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        function applyGravity(obj) {
+            const dx = sun.x - obj.x;
+            const dy = sun.y - obj.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const force = G * (SUN_MASS * SHIP_MASS) / (dist * dist);
+            const ax = force * dx / dist;
+            const ay = force * dy / dist;
+            obj.vx += ax;
+            obj.vy += ay;
+        }
+
+        function moveShip(ship) {
+            if (!ship.alive) return;
+
+            // Thrust
+            if (ship === ship1 && keys['w']) ship.thrust = THRUST;
+            if (ship === ship2 && keys['ArrowUp']) ship.thrust = THRUST;
+            if ((ship === ship1 && !keys['w']) || (ship === ship2 && !keys['ArrowUp'])) ship.thrust = 0;
+
+            // Rotate
+            if (ship === ship1 && keys['a']) ship.angle += 0.05;
+            if (ship === ship1 && keys['d']) ship.angle -= 0.05;
+            if (ship === ship2 && keys['ArrowLeft']) ship.angle += 0.05;
+            if (ship === ship2 && keys['ArrowRight']) ship.angle -= 0.05;
+
+            // Apply thrust
+            ship.vx += Math.cos(ship.angle) * ship.thrust;
+            ship.vy += Math.sin(ship.angle) * ship.thrust;
+
+            // Apply gravity
+            applyGravity(ship);
+
+            // Update position
+            ship.x += ship.vx;
+            ship.y += ship.vy;
+
+            // Fire bullets
+            if (ship === ship1 && keys['s'] && ship.bullets.length < MAX_BULLETS) {
+                ship.bullets.push({
+                    x: ship.x, y: ship.y,
+                    vx: ship.vx + Math.cos(ship.angle) * BULLET_SPEED,
+                    vy: ship.vy + Math.sin(ship.angle) * BULLET_SPEED
+                });
+                keys['s'] = false; // Prevent rapid fire
+            }
+            if (ship === ship2 && keys['ArrowDown'] && ship.bullets.length < MAX_BULLETS) {
+                ship.bullets.push({
+                    x: ship.x, y: ship.y,
+                    vx: ship.vx + Math.cos(ship.angle) * BULLET_SPEED,
+                    vy: ship.vy + Math.sin(ship.angle) * BULLET_SPEED
+                });
+                keys['ArrowDown'] = false;
+            }
+        }
+
+        function moveBullets(ship) {
+            for (let i = ship.bullets.length - 1; i >= 0; i--) {
+                const bullet = ship.bullets[i];
+                applyGravity(bullet);
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+
+                // Remove bullets off-screen
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    ship.bullets.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with other ship
+                const target = ship === ship1 ? ship2 : ship1;
+                if (target.alive && Math.hypot(bullet.x - target.x, bullet.y - target.y) < 10) {
+                    target.alive = false;
+                    ship.bullets.splice(i, 1);
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw sun
+            ctx.fillStyle = '#ff0';
+            ctx.beginPath();
+            ctx.arc(sun.x, sun.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw ships
+            [ship1, ship2].forEach(ship => {
+                if (!ship.alive) return;
+                ctx.save();
+                ctx.translate(ship.x, ship.y);
+                ctx.rotate(ship.angle);
+                ctx.fillStyle = ship.color;
+                ctx.beginPath();
+                ctx.moveTo(10, 0);
+                ctx.lineTo(-5, 5);
+                ctx.lineTo(-5, -5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+                // Draw bullets
+                ship.bullets.forEach(bullet => {
+                    ctx.fillStyle = ship.color;
+                    ctx.beginPath();
+                    ctx.arc(bullet.x, bullet.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            });
+
+            // Game over text
+            if (!ship1.alive || !ship2.alive) {
+                ctx.fillStyle = '#fff';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(
+                    !ship1.alive && !ship2.alive ? "Mutual Destruction!" :
+                    !ship1.alive ? "Red Wins!" : "Green Wins!",
+                    canvas.width / 2, canvas.height / 2
+                );
+            }
+        }
+
+        function update() {
+            moveShip(ship1);
+            moveShip(ship2);
+            moveBullets(ship1);
+            moveBullets(ship2);
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        update();
+
+        // Controls:
+        // Ship 1 (Green): W (thrust), A/D (rotate), S (fire)
+        // Ship 2 (Red): ArrowUp (thrust), ArrowLeft/Right (rotate), ArrowDown (fire)
+    </script>
+</body>
+</html>
