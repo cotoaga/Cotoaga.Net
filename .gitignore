@@ -1,0 +1,8 @@
+# Exclude
+LocalWP
+.DS_Store
+
+# Testing /coverage
+# Next.js .next/
+# Misc *.pem
+# Debug npm-debug.log*
