@@ -14,5 +14,5 @@ export async function GET(request: NextRequest) {
     ]
   };
   const match = patterns[style]?.find(p => p.pattern?.test(input)) || patterns[style]?.find(p => p.default);
-  return new Response(match.response);
+  return new Response(match?.response || 'Oops, bestie—vibes are off, try again!'); // Fixed!
 }
