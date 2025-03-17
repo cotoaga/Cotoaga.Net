@@ -22,7 +22,7 @@ export default function Home() {
       ...prev,
       { sender: 'eliza', text: elizaRes },
       { sender: 'racter', text: racterRes },
-      { sender: 'eliza', text: Math.random() < 0.3 ? 'Um, Racter, your energy’s giving chaos—chill, king!' : null }
+      { sender: 'eliza', text: Math.random() < 0.3 ? 'Um, Racter, your energy’s giving chaos—chill, king!' : '' }
     ].filter(msg => msg.text));
     setInput('');
   };
