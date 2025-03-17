@@ -2,29 +2,59 @@
 import { useState, useEffect } from 'react';
 
 export default function Home() {
+  console.log('Home component rendering');
+
   const [style, setStyle] = useState('genz-woke');
+  console.log('Style initialized:', style);
+
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+  console.log('Messages initialized:', messages);
+
   const [input, setInput] = useState('');
+  console.log('Input initialized:', input);
 
   useEffect(() => {
+    console.log('useEffect triggered for style:', style);
     setMessages([{ sender: 'eliza', text: 'Bestie! ✨ Ready to vibe-check your soul?' }]);
+    console.log('Messages set in useEffect:', messages);
   }, [style]);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('handleSubmit triggered');
     e.preventDefault();
-    if (!input.trim()) return;
+    console.log('Form prevented default');
 
-    setMessages([...messages, { sender: 'user', text: input }]);
+    if (!input.trim()) {
+      console.log('Input empty, returning');
+      return;
+    }
+    console.log('Input trimmed, proceeding:', input);
+
+    setMessages(prev => {
+      console.log('Setting initial messages:', prev);
+      return [...prev, { sender: 'user', text: input }];
+    });
+    console.log('User message added to state');
+
     const elizaRes = await fetch(`/api/eliza?input=${encodeURIComponent(input)}&style=${style}`).then(res => res.text());
+    console.log('ELIZA response:', elizaRes);
+
     const racterRes = await fetch(`/api/racter?input=${encodeURIComponent(input)}&style=${style}`).then(res => res.text());
-    
-    setMessages(prev => [
-      ...prev,
-      { sender: 'eliza', text: elizaRes },
-      { sender: 'racter', text: racterRes },
-      { sender: 'eliza', text: Math.random() < 0.3 ? 'Um, Racter, your energy’s giving chaos—chill, king!' : '' }
-    ].filter(msg => msg.text));
+    console.log('RACTER response:', racterRes);
+
+    setMessages(prev => {
+      console.log('Setting final messages:', prev);
+      return [
+        ...prev,
+        { sender: 'eliza', text: elizaRes },
+        { sender: 'racter', text: racterRes },
+        { sender: 'eliza', text: Math.random() < 0.3 ? 'Um, Racter, your energy’s giving chaos—chill, king!' : '' }
+      ].filter(msg => msg.text);
+    });
+    console.log('All messages set in state');
+
     setInput('');
+    console.log('Input cleared');
   };
 
   return (

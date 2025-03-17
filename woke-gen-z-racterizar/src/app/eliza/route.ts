@@ -1,9 +1,12 @@
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  console.log('ELIZA API called');
   const { searchParams } = new URL(request.url);
+  console.log('Search params parsed:', searchParams.toString());
   const input = searchParams.get('input') || '';
   const style = searchParams.get('style') || 'genz-woke';
+  console.log('Input:', input, 'Style:', style);
 
   const patterns: { [key: string]: { pattern?: RegExp; response: string; default?: boolean }[] } = {
     'genz-woke': [
@@ -13,7 +16,10 @@ export async function GET(request: NextRequest) {
       { default: true, response: 'Spill more tea, fam—what’s the universe serving you today?' }
     ]
   };
+  console.log('Patterns loaded for style:', style);
+
   const match = patterns[style]?.find(p => p.pattern?.test(input)) || patterns[style]?.find(p => p.default);
-  return new Response(match?.response || 'Oops, bestie—vibes are off, try again!'); // Fixed!
-  // fake change to fake vercel - just ignore this line
+  console.log('Match found:', match);
+
+  return new Response(match?.response || 'Oops, bestie—vibes are off, try again!');
 }
